@@ -23,6 +23,40 @@ public class Login extends JPanel implements ActionListener {
         setLayout(new CardLayout());
         cl = (CardLayout) getLayout();
 
+        // --- Apply dark theme to login form and its components ---
+        java.awt.Color darkBg = new java.awt.Color(35, 35, 35); // #232323
+        java.awt.Color lightFg = new java.awt.Color(248, 248, 242); // #f8f8f2
+        java.awt.Color accent = new java.awt.Color(60, 60, 60); // #3c3c3c
+        java.awt.Font monoFont = new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 16);
+
+        loginForm.setBackground(darkBg);
+        panel1.setBackground(darkBg);
+        setBackground(darkBg);
+
+        userLabel.setForeground(lightFg);
+        passLabel.setForeground(lightFg);
+        userLabel.setFont(monoFont);
+        passLabel.setFont(monoFont);
+
+        username.setBackground(darkBg);
+        username.setForeground(lightFg);
+        username.setCaretColor(lightFg);
+        username.setFont(monoFont);
+        password.setBackground(darkBg);
+        password.setForeground(lightFg);
+        password.setCaretColor(lightFg);
+        password.setFont(monoFont);
+
+        JButton[] buttons = {loginBtn, registerBtn};
+        for (JButton btn : buttons) {
+            btn.setBackground(accent);
+            btn.setForeground(lightFg);
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+            btn.setOpaque(true);
+            btn.setFont(monoFont);
+        }
+
         loginForm.add(userLabel);
         loginForm.add(username);
         loginForm.add(passLabel);
@@ -78,6 +112,8 @@ public class Login extends JPanel implements ActionListener {
                 if (found) {
                 // show success message
                 JOptionPane.showMessageDialog(this, "You have logged in!");
+                add(new FileBrowser(username.getText()), "fb");
+                cl.show(this, "fb");
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid username or password.");
             }
@@ -88,11 +124,41 @@ public class Login extends JPanel implements ActionListener {
     }
 }
     public static void main(String[] args) {
+        // --- Set global minimal dark theme for all Swing components ---
+        Color darkBg = new Color(35, 35, 35);
+        Color lightFg = new Color(248, 248, 242);
+        Color accent = new Color(60, 60, 60);
+        Font monoFont = new Font("Monospaced", Font.PLAIN, 16);
+
+        UIManager.put("Panel.background", darkBg);
+        UIManager.put("OptionPane.background", darkBg);
+        UIManager.put("OptionPane.messageForeground", lightFg);
+        UIManager.put("Button.background", accent);
+        UIManager.put("Button.foreground", lightFg);
+        UIManager.put("Button.font", monoFont);
+        UIManager.put("Label.foreground", lightFg);
+        UIManager.put("Label.background", darkBg);
+        UIManager.put("TextField.background", darkBg);
+        UIManager.put("TextField.foreground", lightFg);
+        UIManager.put("TextField.caretForeground", lightFg);
+        UIManager.put("TextField.font", monoFont);
+        UIManager.put("PasswordField.background", darkBg);
+        UIManager.put("PasswordField.foreground", lightFg);
+        UIManager.put("PasswordField.caretForeground", lightFg);
+        UIManager.put("PasswordField.font", monoFont);
+        UIManager.put("TextArea.background", darkBg);
+        UIManager.put("TextArea.foreground", lightFg);
+        UIManager.put("TextArea.caretForeground", lightFg);
+        UIManager.put("TextArea.font", monoFont);
+        UIManager.put("ScrollPane.background", darkBg);
+        UIManager.put("ScrollPane.foreground", lightFg);
+
+        // --- Launch the main frame as before ---
         JFrame frame = new JFrame("Login/Register");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 300);
         frame.setLocationRelativeTo(null);
-        frame.setFont(new Font("JetBrainsMono NF", Font.BOLD, 15));
+        frame.setFont(monoFont);
         Login loginPanel = new Login();
         frame.add(loginPanel);
         frame.setVisible(true);
