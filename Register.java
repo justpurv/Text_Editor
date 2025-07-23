@@ -6,31 +6,104 @@ import java.security.*;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 public class Register extends JPanel implements ActionListener {
-    JLabel userLabel = new JLabel("Username:");
     JTextField usernameField = new JTextField();
-    JLabel passLabel = new JLabel("Password:");
     JPasswordField passField = new JPasswordField();
-    JLabel confirmLabel = new JLabel("Confirm Password:");
     JPasswordField confirmField = new JPasswordField();
     JButton registerBtn = new JButton("Register");
     JButton backBtn = new JButton("Back");
 
     public Register() {
-        JPanel form = new JPanel(new GridLayout(4, 2));
-        form.add(userLabel);
+        setLayout(new GridBagLayout());
+        JPanel form = new JPanel(new GridBagLayout());
+        Color bg_color = new Color(40, 44, 52); // Dark gray
+        Color fg_color = new Color(220, 220, 220); // Light gray
+        Color accent_color = new Color(97, 218, 251); // Light blue
+        Font label_font = new Font("Arial", Font.BOLD, 14);
+        Font text_font = new Font("Arial", Font.PLAIN, 14);
+
+
         form.add(usernameField);
-        form.add(passLabel);
         form.add(passField);
-        form.add(confirmLabel);
         form.add(confirmField);
         form.add(registerBtn);
-        form.add(backBtn);
+        form.add(backBtn); 
+
+        form.setBackground(bg_color);
+        form.setBorder(new EmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Username
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        JLabel user_label = new JLabel("Username:");
+        user_label.setFont(label_font);
+        user_label.setForeground(fg_color);
+        form.add(user_label, gbc);
+
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        usernameField .setFont(text_font);
+        form.add(usernameField, gbc);
+
+        // Password
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        JLabel pass_label = new JLabel("Password:");
+        pass_label.setFont(label_font);
+        pass_label.setForeground(fg_color);
+        form.add(pass_label, gbc);
+
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        passField.setFont(text_font);
+        form.add(passField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        JLabel pass_label_confirm = new JLabel("Confirm Password:");
+        pass_label_confirm.setFont(label_font);
+        pass_label_confirm.setForeground(fg_color);
+        form.add(pass_label_confirm, gbc);
+
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        confirmField.setFont(text_font);
+        form.add(confirmField, gbc);
+
+
+        // Buttons
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JPanel button_panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        button_panel.setBackground(bg_color);
+        style_button(registerBtn, accent_color);
+        style_button(backBtn, accent_color);
+        button_panel.add(registerBtn);
+        button_panel.add(backBtn);
+        form.add(button_panel, gbc);
+
 
         registerBtn.addActionListener(this);
         backBtn.addActionListener(this);
         add(form);
+    }
+
+    private void style_button(JButton button, Color accent_color) {
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(accent_color);
+        button.setForeground(Color.BLACK);
+        button.setFocusPainted(false);
+        button.setBorder(new EmptyBorder(10, 20, 10, 20));
     }
 
     @Override
