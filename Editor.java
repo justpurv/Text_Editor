@@ -1,153 +1,178 @@
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.awt.BorderLayout;
 
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
 
+public class Editor extends JPanel implements ActionListener {
 
-public class Editor extends JPanel implements ActionListener{
-    File file; 
-    JButton save = new JButton("SAVE");
-    JButton save_close = new JButton("SAVE & CLOSE");
-    JButton deleteBtn = new JButton("DELETE");
-    JButton undoBtn = new JButton("Undo");
-    JButton redoBtn = new JButton("Redo");
-    JTextArea text = new JTextArea(500,500);
-    private Login findLoginParent() {
-        java.awt.Container parent = this.getParent();
+    private File file;
+    private JTextArea text_area = new JTextArea();
+    private JButton save_button = new JButton("Save");
+    private JButton save_and_close_button = new JButton("Save & Close");
+    private JButton back_button = new JButton("Back");
+    private JButton undo_button = new JButton("Undo");
+    private JButton redo_button = new JButton("Redo");
+
+    private UndoManager undo_manager = new UndoManager();
+    private UndoableEditListener undo_listener;
+
+    public Editor(String filePath) {
+        file = new File(filePath);
+        setup_ui();
+        setup_undo_redo();
+        load_file();
+    }
+
+    private void setup_ui() {
+        Color bg_color = new Color(40, 44, 52);
+        Color fg_color = new Color(220, 220, 220);
+        Color accent_color = new Color(97, 218, 251);
+        Font text_font = new Font("Monospaced", Font.PLAIN, 16);
+
+        setLayout(new BorderLayout(10, 10));
+        setBackground(bg_color);
+        setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        // Title
+        JLabel title_label = new JLabel(file.getName());
+        title_label.setFont(new Font("Arial", Font.BOLD, 24));
+        title_label.setForeground(fg_color);
+        title_label.setHorizontalAlignment(SwingConstants.CENTER);
+        add(title_label, BorderLayout.NORTH);
+
+        // Text area
+        text_area.setBackground(bg_color);
+        text_area.setForeground(fg_color);
+        text_area.setCaretColor(accent_color);
+        text_area.setFont(text_font);
+        text_area.setLineWrap(true);
+        text_area.setWrapStyleWord(true);
+        text_area.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JScrollPane scroll_pane = new JScrollPane(text_area);
+        scroll_pane.setBorder(BorderFactory.createLineBorder(accent_color));
+        add(scroll_pane, BorderLayout.CENTER);
+
+        // Button Panel
+        JPanel button_panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        button_panel.setBackground(bg_color);
+        style_button(undo_button, accent_color);
+        style_button(redo_button, accent_color);
+        style_button(save_button, accent_color);
+        style_button(save_and_close_button, accent_color);
+        style_button(back_button, new Color(255, 100, 100));
+
+        button_panel.add(undo_button);
+        button_panel.add(redo_button);
+        button_panel.add(save_button);
+        button_panel.add(save_and_close_button);
+        button_panel.add(back_button);
+
+        add(button_panel, BorderLayout.SOUTH);
+
+        // Button listeners
+        save_button.addActionListener(this);
+        save_and_close_button.addActionListener(this);
+        back_button.addActionListener(this);
+
+        undo_button.addActionListener(e -> {
+            if (undo_manager.canUndo()) undo_manager.undo();
+        });
+
+        redo_button.addActionListener(e -> {
+            if (undo_manager.canRedo()) undo_manager.redo();
+        });
+    }
+
+    private void setup_undo_redo() {
+        // Store undo listener to detach/attach later
+        undo_listener = new UndoableEditListener() {
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                undo_manager.addEdit(e.getEdit());
+            }
+        };
+
+        text_area.getDocument().addUndoableEditListener(undo_listener);
+
+        // Keyboard shortcuts
+        text_area.getInputMap(JComponent.WHEN_FOCUSED).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
+        text_area.getActionMap().put("Undo", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (undo_manager.canUndo()) undo_manager.undo();
+            }
+        });
+
+        text_area.getInputMap(JComponent.WHEN_FOCUSED).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "Redo");
+        text_area.getActionMap().put("Redo", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (undo_manager.canRedo()) undo_manager.redo();
+            }
+        });
+    }
+
+    private void style_button(JButton button, Color color) {
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBackground(color);
+        button.setForeground(Color.BLACK);
+        button.setFocusPainted(false);
+        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+    }
+
+    private void load_file() {
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                text_area.getDocument().removeUndoableEditListener(undo_listener); // Temporarily detach
+                text_area.read(reader, null);
+                text_area.getDocument().addUndoableEditListener(undo_listener); // Reattach
+                undo_manager.discardAllEdits(); // Clean slate for undo history
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this,
+                    "Error loading file: " + e.getMessage(),
+                    "File Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void save_file() {
+        try (FileWriter writer = new FileWriter(file)) {
+            text_area.write(writer);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                "Error saving file: " + e.getMessage(),
+                "File Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object source = e.getSource();
+        if (source == save_button) {
+            save_file();
+        } else if (source == save_and_close_button) {
+            save_file();
+            go_back_to_browser();
+        } else if (source == back_button) {
+            go_back_to_browser();
+        }
+    }
+
+    private void go_back_to_browser() {
+        Container parent = getParent();
         while (parent != null && !(parent instanceof Login)) {
             parent = parent.getParent();
         }
-        return (Login) parent;
-    }
-    public Editor(String s){
-        file = new File(s);
-        save.addActionListener(this);
-        save_close.addActionListener(this);
-        deleteBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(Editor.this, "Are you sure you want to delete this file?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    if (file.delete()) {
-                        JOptionPane.showMessageDialog(Editor.this, "File deleted successfully.");
-                        Login login = (Login)getParent();
-                        login.cl.show(login, "fb");
-                    } else {
-                        JOptionPane.showMessageDialog(Editor.this, "Failed to delete file.");
-                    }
-                }
-            }
-        });
-        UndoManager undoManager = new UndoManager();
-        text.getDocument().addUndoableEditListener(undoManager);
-        undoBtn.addActionListener(e -> {
-            if (undoManager.canUndo()) undoManager.undo();
-        });
-        redoBtn.addActionListener(e -> {
-            if (undoManager.canRedo()) undoManager.redo();
-        });
-        text.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
-        text.getActionMap().put("Undo", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                if (undoManager.canUndo()) undoManager.undo();
-            }
-        });
-        text.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
-        text.getActionMap().put("Redo", new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                if (undoManager.canRedo()) undoManager.redo();
-            }
-        });
-
-        setLayout(new BorderLayout());
-        JPanel buttonPanel = new JPanel();
-
-        // --- Minimal Dark Theme for Buttons ---
-        java.awt.Color darkBg = new java.awt.Color(35, 35, 35); // #232323
-        java.awt.Color lightFg = new java.awt.Color(248, 248, 242); // #f8f8f2
-        java.awt.Color accent = new java.awt.Color(60, 60, 60); // Slightly lighter for button hover
-
-        // Style buttons for dark theme
-        JButton[] buttons = {save, save_close};
-        for (JButton btn : buttons) {
-            btn.setBackground(accent); // dark background
-            btn.setForeground(lightFg); // light text
-            btn.setFocusPainted(false); // remove focus border
-            btn.setBorderPainted(false); // flat look
-            btn.setOpaque(true);
-        }
-        // Add deleteBtn to the button panel and style it
-        deleteBtn.setBackground(new java.awt.Color(180, 50, 50));
-        deleteBtn.setForeground(java.awt.Color.WHITE);
-        deleteBtn.setFocusPainted(false);
-        deleteBtn.setBorderPainted(false);
-        deleteBtn.setOpaque(true);
-        undoBtn.setPreferredSize(new java.awt.Dimension(90, 36));
-        redoBtn.setPreferredSize(new java.awt.Dimension(90, 36));
-        buttonPanel.setBackground(darkBg); // dark background for button panel
-        buttonPanel.add(undoBtn);
-        buttonPanel.add(redoBtn);
-        buttonPanel.add(save);
-        buttonPanel.add(save_close);
-        buttonPanel.add(deleteBtn);
-        add(buttonPanel, BorderLayout.NORTH);
-
-        // --- Minimal Dark Theme for Text Area ---
-        text.setLineWrap(true);
-        text.setWrapStyleWord(true);
-        text.setBackground(darkBg); // dark background
-        text.setForeground(lightFg); // light text
-        text.setCaretColor(lightFg); // light caret
-        text.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 16)); // monospaced font
-        text.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10)); // minimal padding
-        
-        text.setWrapStyleWord(true);
-        // --- Minimal Dark Theme for Scroll Pane ---
-        JScrollPane scrollPane = new JScrollPane(text);
-        scrollPane.setPreferredSize(new java.awt.Dimension(600, 400));
-        scrollPane.setBackground(darkBg); // dark background for scroll pane
-        scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder()); // remove border
-        add(scrollPane, BorderLayout.CENTER);
-
-        // --- Set background for main panel ---
-        setBackground(darkBg);
-
-        if(file.exists()){
-            try {
-              BufferedReader input = new BufferedReader(new FileReader(file));
-              String line = input.readLine();
-              while(line != null){
-                  text.append(line+"\n");
-                  line = input.readLine();
-              } 
-            } catch (Exception e) {
-                // TODO: handle exception
-            }
-        }
-    }
-    
-    @Override
-    public void actionPerformed(ActionEvent e){
-       try {
-        FileWriter output = new FileWriter(file);
-        output.write(text.getText());
-        output.close();
-        if(e.getSource() == save_close){
-            Login login = findLoginParent();
+        if (parent instanceof Login) {
+            Login login = (Login) parent;
             login.cl.show(login, "fb");
         }
-       } catch (IOException e1) {
-        // TODO: handle exception
-        e1.printStackTrace();
-       } 
     }
 }
+
