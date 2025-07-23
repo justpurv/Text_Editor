@@ -81,7 +81,7 @@ public class FileBrowser extends JPanel implements ActionListener{
 
             if (newFile.getText().length() > 0 && !f.exists()) {
                 try {
-                    f.createNewFile(); // ✅ Create the file
+                    f.createNewFile(); 
                     login.add(new Editor(filePath), "editor");
                     login.cl.show(login, "editor");
                 } catch (IOException ex1) {
