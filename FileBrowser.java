@@ -97,12 +97,41 @@ public class FileBrowser extends JPanel implements ActionListener {
         delete_file_button.addActionListener(this);
     }
 
-    private void style_button(JButton button, Color color) {
+    private void style_button(JButton button, Color accent_color) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(color);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+
+        button.setBackground(accent_color);
+
+        // Override the button painting
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                JButton b = (JButton) c;
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(b.getBackground());
+                g2.fillRoundRect(0, 0, b.getWidth(), b.getHeight(), 15, 15);
+                super.paint(g, c);
+                g2.dispose();
+            }
+        });
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color.darker());
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color);
+            }
+        });
     }
 
     @Override
@@ -113,7 +142,8 @@ public class FileBrowser extends JPanel implements ActionListener {
             if (selected_file != null) {
                 open_file(selected_file);
             } else {
-                JOptionPane.showMessageDialog(this, "Please select a file to open.", "No File Selected", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a file to open.", "No File Selected",
+                        JOptionPane.WARNING_MESSAGE);
             }
         } else if (e.getSource() == new_file_button) {
             create_new_file();
@@ -121,7 +151,8 @@ public class FileBrowser extends JPanel implements ActionListener {
             if (selected_file != null) {
                 delete_file(selected_file);
             } else {
-                JOptionPane.showMessageDialog(this, "Please select a file to delete.", "No File Selected", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a file to delete.", "No File Selected",
+                        JOptionPane.WARNING_MESSAGE);
             }
         }
     }
@@ -139,7 +170,7 @@ public class FileBrowser extends JPanel implements ActionListener {
             if (!new_file_name.contains(".")) {
                 new_file_name += ".txt";
             }
-            
+
             File new_file = new File(directory, new_file_name);
             if (!new_file.exists()) {
                 try {
@@ -148,24 +179,28 @@ public class FileBrowser extends JPanel implements ActionListener {
                         new_file_textfield.setText("");
                     }
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(this, "Error creating file: " + ex.getMessage(), "File Creation Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Error creating file: " + ex.getMessage(),
+                            "File Creation Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "File already exists.", "File Exists", JOptionPane.WARNING_MESSAGE);
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Please enter a file name.", "Empty File Name", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please enter a file name.", "Empty File Name",
+                    JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void delete_file(String file_name) {
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete '" + file_name + "'?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete '" + file_name + "'?",
+                "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             File file_to_delete = new File(directory, file_name);
             if (file_to_delete.delete()) {
                 list_model.removeElement(file_name);
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to delete the file.", "Deletion Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to delete the file.", "Deletion Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -173,7 +208,8 @@ public class FileBrowser extends JPanel implements ActionListener {
     // Custom cell renderer to add padding to JList items
     private static class FileListCellRenderer extends DefaultListCellRenderer {
         @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+                boolean cellHasFocus) {
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             label.setBorder(new EmptyBorder(5, 10, 5, 10));
             return label;

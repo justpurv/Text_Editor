@@ -81,11 +81,13 @@ public class Editor extends JPanel implements ActionListener {
         back_button.addActionListener(this);
 
         undo_button.addActionListener(e -> {
-            if (undo_manager.canUndo()) undo_manager.undo();
+            if (undo_manager.canUndo())
+                undo_manager.undo();
         });
 
         redo_button.addActionListener(e -> {
-            if (undo_manager.canRedo()) undo_manager.redo();
+            if (undo_manager.canRedo())
+                undo_manager.redo();
         });
     }
 
@@ -102,28 +104,59 @@ public class Editor extends JPanel implements ActionListener {
 
         // Keyboard shortcuts
         text_area.getInputMap(JComponent.WHEN_FOCUSED).put(
-            KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
+                KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
         text_area.getActionMap().put("Undo", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                if (undo_manager.canUndo()) undo_manager.undo();
+                if (undo_manager.canUndo())
+                    undo_manager.undo();
             }
         });
 
         text_area.getInputMap(JComponent.WHEN_FOCUSED).put(
-            KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "Redo");
+                KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "Redo");
         text_area.getActionMap().put("Redo", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                if (undo_manager.canRedo()) undo_manager.redo();
+                if (undo_manager.canRedo())
+                    undo_manager.redo();
             }
         });
     }
 
-    private void style_button(JButton button, Color color) {
+    private void style_button(JButton button, Color accent_color) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(color);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+
+        button.setBackground(accent_color);
+
+        // Override the button painting
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                JButton b = (JButton) c;
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(b.getBackground());
+                g2.fillRoundRect(0, 0, b.getWidth(), b.getHeight(), 15, 15);
+                super.paint(g, c);
+                g2.dispose();
+            }
+        });
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color.darker());
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color);
+            }
+        });
     }
 
     private void load_file() {
@@ -135,8 +168,8 @@ public class Editor extends JPanel implements ActionListener {
                 undo_manager.discardAllEdits(); // Clean slate for undo history
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this,
-                    "Error loading file: " + e.getMessage(),
-                    "File Error", JOptionPane.ERROR_MESSAGE);
+                        "Error loading file: " + e.getMessage(),
+                        "File Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -146,8 +179,8 @@ public class Editor extends JPanel implements ActionListener {
             text_area.write(writer);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                "Error saving file: " + e.getMessage(),
-                "File Error", JOptionPane.ERROR_MESSAGE);
+                    "Error saving file: " + e.getMessage(),
+                    "File Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -175,4 +208,3 @@ public class Editor extends JPanel implements ActionListener {
         }
     }
 }
-

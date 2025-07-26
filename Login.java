@@ -74,7 +74,7 @@ public class Login extends JPanel implements ActionListener {
 
         // Buttons
         gbc.gridy = 3;
-        gbc.gridx = 0;
+        gbc.gridx = 1;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         JPanel button_panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -92,13 +92,44 @@ public class Login extends JPanel implements ActionListener {
         register_button.addActionListener(this);
     }
 
+    
     private void style_button(JButton button, Color accent_color) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(accent_color);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+
+        button.setBackground(accent_color);
+
+        // Override the button painting
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                JButton b = (JButton) c;
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(b.getBackground());
+                g2.fillRoundRect(0, 0, b.getWidth(), b.getHeight(), 15, 15);
+                super.paint(g, c);
+                g2.dispose();
+            }
+        });
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color.darker());
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color);
+            }
+        });
     }
+
+
 
     @Override
     public void actionPerformed(ActionEvent e) {

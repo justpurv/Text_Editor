@@ -24,12 +24,11 @@ public class Register extends JPanel implements ActionListener {
         Font label_font = new Font("Arial", Font.BOLD, 14);
         Font text_font = new Font("Arial", Font.PLAIN, 14);
 
-
         form.add(usernameField);
         form.add(passField);
         form.add(confirmField);
         form.add(registerBtn);
-        form.add(backBtn); 
+        form.add(backBtn);
 
         form.setBackground(bg_color);
         form.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -48,7 +47,7 @@ public class Register extends JPanel implements ActionListener {
 
         gbc.gridx = 1;
         gbc.anchor = GridBagConstraints.LINE_START;
-        usernameField .setFont(text_font);
+        usernameField.setFont(text_font);
         form.add(usernameField, gbc);
 
         // Password
@@ -78,7 +77,6 @@ public class Register extends JPanel implements ActionListener {
         confirmField.setFont(text_font);
         form.add(confirmField, gbc);
 
-
         // Buttons
         gbc.gridy = 4;
         gbc.gridx = 0;
@@ -92,7 +90,6 @@ public class Register extends JPanel implements ActionListener {
         button_panel.add(backBtn);
         form.add(button_panel, gbc);
 
-
         registerBtn.addActionListener(this);
         backBtn.addActionListener(this);
         add(form);
@@ -100,10 +97,39 @@ public class Register extends JPanel implements ActionListener {
 
     private void style_button(JButton button, Color accent_color) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(accent_color);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
-        button.setBorder(new EmptyBorder(10, 20, 10, 20));
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+
+        button.setBackground(accent_color);
+
+        // Override the button painting
+        button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                JButton b = (JButton) c;
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(b.getBackground());
+                g2.fillRoundRect(0, 0, b.getWidth(), b.getHeight(), 15, 15);
+                super.paint(g, c);
+                g2.dispose();
+            }
+        });
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color.darker());
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(accent_color);
+            }
+        });
     }
 
     @Override
@@ -165,20 +191,18 @@ public class Register extends JPanel implements ActionListener {
         }
     }
 
-    
-private void goToLogin() {
-    Component c = this;
-    while (c.getParent() != null) {
-        c = c.getParent();
-        if (c instanceof Container) {
-            LayoutManager layout = ((Container) c).getLayout();
-            if (layout instanceof CardLayout) {
-                ((CardLayout) layout).show((Container) c, "login");
-                break;
+    private void goToLogin() {
+        Component c = this;
+        while (c.getParent() != null) {
+            c = c.getParent();
+            if (c instanceof Container) {
+                LayoutManager layout = ((Container) c).getLayout();
+                if (layout instanceof CardLayout) {
+                    ((CardLayout) layout).show((Container) c, "login");
+                    break;
+                }
             }
         }
     }
-}
 
 }
-
